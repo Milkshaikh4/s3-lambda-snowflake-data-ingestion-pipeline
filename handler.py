@@ -65,38 +65,39 @@ def get_snowflake_connection():
 def ingest_data(event, context):
     """
     Lambda handler triggered by S3 event.
-    Triggers a Snowflake Notebook (Workbook) to handle ingestion.
+    Reads a local SQL file and executes it in Snowflake to handle ingestion.
     """
     logger.info(f"Received S3 event: {json.dumps(event)}")
     
-    notebook_name = os.environ.get('SNOWFLAKE_NOTEBOOK_NAME')
-    if not notebook_name:
-        logger.error("SNOWFLAKE_NOTEBOOK_NAME environment variable is not set.")
-        return {'statusCode': 500, 'body': 'Configuration error.'}
-
+    sql_file_path = os.environ.get('SNOWFLAKE_SQL_FILE', 'ingest_from_s3.sql')
+    
     try:
+        # Load the SQL template
+        with open(sql_file_path, 'r') as f:
+            sql_template = f.read()
+            
         # 1. Parse S3 Event
         for record in event['Records']:
             bucket_name = record['s3']['bucket']['name']
             file_key = record['s3']['object']['key']
             
-            logger.info(f"Triggering notebook {notebook_name} for file: s3://{bucket_name}/{file_key}")
+            logger.info(f"Ingesting file: s3://{bucket_name}/{file_key}")
             
-            # 2. Trigger Snowflake Notebook
+            # 2. Establish Connection
             conn = get_snowflake_connection()
             cur = conn.cursor()
             
             try:
-                # EXECUTE NOTEBOOK requires the fully qualified name or IDENTIFIER
-                # We also pass the bucket and key as arguments to the notebook.
-                # Inside the notebook, access these via: import sys; bucket = sys.argv[1]; key = sys.argv[2]
+                # 3. Inject variables and Split SQL into individual commands
+                # (Snowflake's connector handles one command at a time)
+                final_sql = sql_template.format(bucket_name=bucket_name, file_key=file_key)
+                commands = [cmd.strip() for cmd in final_sql.split(';') if cmd.strip()]
                 
-                query = f"EXECUTE NOTEBOOK {notebook_name}('{bucket_name}', '{file_key}');"
-                logger.info(f"Executing: {query}")
+                for command in commands:
+                    logger.info(f"Executing SQL command: {command[:100]}...")
+                    cur.execute(command)
                 
-                cur.execute(query)
-                
-                logger.info(f"Notebook {notebook_name} triggered successfully.")
+                logger.info(f"Ingestion for {file_key} complete.")
                 
             finally:
                 cur.close()
@@ -104,9 +105,9 @@ def ingest_data(event, context):
                 
         return {
             'statusCode': 200,
-            'body': json.dumps({'message': f'Notebook {notebook_name} triggered.'})
+            'body': json.dumps({'message': 'Ingestion successful.'})
         }
 
     except Exception as e:
-        logger.error(f"Error triggering notebook: {str(e)}")
+        logger.error(f"Ingestion failed: {str(e)}")
         raise e
