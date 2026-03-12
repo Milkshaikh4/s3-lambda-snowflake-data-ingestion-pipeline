@@ -28,7 +28,7 @@ provider:
     SNOWFLAKE_SQL_FILE: ingest_from_s3.sql
 
 custom:
-  sourceBucketName: ${env:SOURCE_BUCKET_NAME}
+  sourceBucketName: ${env:SOURCE_BUCKET_NAME, 'snowflake-ingestion-data-nsh-12032026'}
   pythonRequirements:
     dockerizePip: true
 
