@@ -1,0 +1,46 @@
+service: s3-lambda-snowflake-ingestion
+
+provider:
+  name: aws
+  runtime: python3.11
+  region: ap-southeast-2
+  profile: DTP-serverless
+  memorySize: 128
+  timeout: 60
+  stage: ${opt:stage, 'dev'}
+  iamRoleStatements:
+    - Effect: Allow
+      Action:
+        - s3:GetObject
+      Resource: "arn:aws:s3:::${self:custom.sourceBucketName}/*"
+    - Effect: Allow
+      Action:
+        - secretsmanager:GetSecretValue
+      Resource: "arn:aws:secretsmanager:${aws:region}:${aws:accountId}:secret:${self:provider.environment.SNOWFLAKE_PRIVATE_KEY_SECRET}-*"
+  environment:
+    SNOWFLAKE_ACCOUNT: ${env:SNOWFLAKE_ACCOUNT}
+    SNOWFLAKE_USER: ${env:SNOWFLAKE_USER}
+    SNOWFLAKE_PRIVATE_KEY_SECRET: ${env:SNOWFLAKE_PRIVATE_KEY_SECRET, 'snowflake/private_key'}
+    SNOWFLAKE_DATABASE: ${env:SNOWFLAKE_DATABASE}
+    SNOWFLAKE_SCHEMA: ${env:SNOWFLAKE_SCHEMA}
+    SNOWFLAKE_WAREHOUSE: ${env:SNOWFLAKE_WAREHOUSE}
+    SNOWFLAKE_ROLE: ${env:SNOWFLAKE_ROLE}
+    SNOWFLAKE_NOTEBOOK_NAME: ${env:SNOWFLAKE_NOTEBOOK_NAME}
+
+custom:
+  sourceBucketName: ${env:SOURCE_BUCKET_NAME}
+  pythonRequirements:
+    dockerizePip: true
+
+functions:
+  ingestToSnowflake:
+    handler: handler.ingest_data
+    events:
+      - s3:
+          bucket: ${self:custom.sourceBucketName}
+          event: s3:ObjectCreated:*
+          rules:
+            - suffix: .csv
+
+plugins:
+  - serverless-python-requirements

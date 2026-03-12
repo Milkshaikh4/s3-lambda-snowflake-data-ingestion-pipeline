@@ -6,6 +6,15 @@ __pycache__/
 # C extensions
 *.so
 
+.vscode
+.serverless
+
+# Environment Variables
+.env*
+
+*.p8
+*.pub
+
 # Distribution / packaging
 .Python
 build/

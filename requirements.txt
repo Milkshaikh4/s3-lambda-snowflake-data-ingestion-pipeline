@@ -1,0 +1,4 @@
+snowflake-connector-python==3.7.1
+boto3
+python-dotenv
+cryptography
