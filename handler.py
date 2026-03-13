@@ -30,7 +30,6 @@ def get_private_key():
         logger.error(f"Error retrieving secret {secret_name}: {str(e)}")
         raise e
 
-    # The secret is stored as a plaintext string
     private_key_pem = get_secret_value_response['SecretString']
     
     # Convert PEM to DER format (which the Snowflake connector expects)

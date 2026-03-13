@@ -20,15 +20,15 @@ provider:
   environment:
     SNOWFLAKE_ACCOUNT: ${env:SNOWFLAKE_ACCOUNT}
     SNOWFLAKE_USER: ${env:SNOWFLAKE_USER}
-    SNOWFLAKE_PRIVATE_KEY_SECRET: ${env:SNOWFLAKE_PRIVATE_KEY_SECRET, 'snowflake/private_key'}
+    SNOWFLAKE_PRIVATE_KEY_SECRET: ${env:SNOWFLAKE_PRIVATE_KEY_SECRET}
     SNOWFLAKE_DATABASE: ${env:SNOWFLAKE_DATABASE}
     SNOWFLAKE_SCHEMA: ${env:SNOWFLAKE_SCHEMA}
     SNOWFLAKE_WAREHOUSE: ${env:SNOWFLAKE_WAREHOUSE}
     SNOWFLAKE_ROLE: ${env:SNOWFLAKE_ROLE}
-    SNOWFLAKE_SQL_FILE: ingest_from_s3.sql
+    SNOWFLAKE_SQL_FILE: ${env:SNOWFLAKE_SQL_FILE}
 
 custom:
-  sourceBucketName: ${env:SOURCE_BUCKET_NAME, 'snowflake-ingestion-data-nsh-12032026'}
+  sourceBucketName: ${env:SOURCE_BUCKET_NAME}
   pythonRequirements:
     dockerizePip: true
 
