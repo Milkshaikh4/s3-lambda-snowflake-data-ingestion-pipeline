@@ -213,5 +213,6 @@ SELECT * FROM TRUCK_LOADS;
 ```
 If everything is configured correctly, you should see the rows from your CSV file reflected in the table!
 
-Hand drawn diagram
-<img src="diagram.jpg" alt="Diagram" style="transform:rotate(-90deg);">
+## Hand drawn diagram: 
+
+<img src="diagram_fixed.jpg" alt="Diagram">
